@@ -1,0 +1,104 @@
+package com.ldap.autenticacao.controlle;
+
+import java.io.Serializable;
+import java.util.Hashtable;
+
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ldap.autenticacao.constante.LdapAttributesType;
+import com.ldap.autenticacao.request.LoginRequest;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ *
+ * @author tbn01914
+ */
+@Slf4j
+@RestController
+@RequestMapping("/main")
+public class LoginService implements Serializable {
+    
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3745659162111862251L;
+
+	@Value("${ldap.url}")
+	private String ldapUrl;
+	 
+	@Value("${ldap.base.dn}")
+	private String ldapBaseDn;
+	 
+	@Value("${ldap.user.dn.pattern}")
+	private String ldapUserDnPattern;
+	
+	@Value("${ldap.user.suffix}")
+	private String ldapUserSuffix;
+	 
+	@Value("${ldap.group.match}")
+	private String ldapGroupMatch;	 
+	 
+    @RequestMapping(value = "/login")
+    @CrossOrigin(origins = "*", maxAge = 3600)
+    public @ResponseBody LoginRequest login(final @RequestBody LoginRequest login) {
+        
+        try {
+        	
+            // Create the initial context
+            final Hashtable<String, String> env = new Hashtable<String, String>();
+            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+            env.put(Context.SECURITY_AUTHENTICATION, "Simple");
+            env.put(Context.SECURITY_PRINCIPAL, login.getUsuario().concat(ldapUserSuffix));
+            env.put(Context.SECURITY_CREDENTIALS, login.getSenha());
+            env.put(Context.PROVIDER_URL, ldapUrl);
+            
+            final LdapContext ctx = new InitialLdapContext(env, null);
+
+            final SearchControls searchCtls = new SearchControls();
+            final String returnedAtts[]={LdapAttributesType.NAME.value(), LdapAttributesType.MAIL.value(), 
+            		LdapAttributesType.MAIL_NICK_NAME.value(), LdapAttributesType.MEMBEROF.value()};
+            searchCtls.setReturningAttributes(returnedAtts);
+
+            searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+            final String searchFilter = String.format(ldapUserDnPattern, login.getUsuario());              	
+
+            final NamingEnumeration<SearchResult> answer = ctx.search(ldapBaseDn, searchFilter, searchCtls); 
+
+            final SearchResult result = (SearchResult)answer.next();
+            if (ctx != null) { 
+            	ctx.close();
+            }
+
+            final Attribute nome = result.getAttributes().get(LdapAttributesType.NAME.value());
+            final Attribute email = result.getAttributes().get(LdapAttributesType.MAIL.value());
+            final Attribute nickName = result.getAttributes().get(LdapAttributesType.MAIL_NICK_NAME.value());
+            final Attribute memberOf = result.getAttributes().get(LdapAttributesType.MEMBEROF.value());
+            
+            if(memberOf.contains(ldapGroupMatch)) {
+            	return new LoginRequest(nome.get().toString(), email.get().toString(), nickName.get().toString(), "S");
+            }else {
+            	return new LoginRequest(nome.get().toString(), email.get().toString(), nickName.get().toString(), "N");
+            }
+            
+        } catch (Exception e) {
+            log.error(LoginService.class.getName(), e);
+            return new LoginRequest("Login incorreto. Msg:"+e.getMessage());
+        }
+    	
+    }
+    
+}
