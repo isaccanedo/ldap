@@ -1,0 +1,34 @@
+package com.ldap.autenticacao.constante;
+
+public enum FirmwareType {
+	
+	INTEGRIDADE("1"), FIRMWARE("2"), TODOS("3");
+
+	private String keyTypeCode;
+
+	private FirmwareType(final String keyTypeCode) {
+		this.keyTypeCode = keyTypeCode;
+
+	}
+
+	public String value() {
+		return this.keyTypeCode;
+	}
+
+	public static CryptoType fromKeyTypeName(final String keyTypeName) {
+		for (final CryptoType rc : CryptoType.values()) {
+			if (rc.name().equalsIgnoreCase(keyTypeName)) {
+				return rc;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String toString() {
+
+		return this.name();
+	}
+
+}
