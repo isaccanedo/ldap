@@ -1,0 +1,53 @@
+package com.ldap.autenticacao.request;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@lombok.NoArgsConstructor
+@lombok.Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
+public class LoginRequest {
+
+	@JsonProperty("usuario")
+    private String usuario;
+	
+	@JsonProperty("senha")
+    private String senha;
+	
+	@JsonProperty("nome")
+    private String nome;
+	
+	@JsonProperty("email")
+    private String email;
+	
+	@JsonProperty("nickName")
+    private String nickName;
+
+	@JsonProperty("grupo")
+    private String grupo;
+	
+	@JsonProperty("error")
+    private String error;
+	
+	public LoginRequest(String error) {
+		this();
+		this.error = error;
+	}
+	
+	public LoginRequest(String usuario, String senha) {
+		this();
+		this.usuario = usuario;
+		this.senha = senha;
+	}
+
+	public LoginRequest(String nome, String email, String nickName, String grupo) {
+		this();
+		this.nome = nome;
+		this.email = email;
+		this.nickName = nickName;
+		this.grupo = grupo;
+	}
+}
