@@ -1,0 +1,34 @@
+package com.ldap.autenticacao.constante;
+
+public enum LdapAttributesType {
+
+	NAME("name"), MAIL("mail"), MAIL_NICK_NAME("mailNickname"), MEMBEROF("memberOf");
+
+	private String keyTypeCode;
+
+	private LdapAttributesType(final String keyTypeCode) {
+		this.keyTypeCode = keyTypeCode;
+
+	}
+
+	public String value() {
+		return this.keyTypeCode;
+	}
+
+	public static CryptoType fromKeyTypeName(final String keyTypeName) {
+		for (final CryptoType rc : CryptoType.values()) {
+			if (rc.name().equalsIgnoreCase(keyTypeName)) {
+				return rc;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String toString() {
+
+		return this.name();
+	}
+
+}
