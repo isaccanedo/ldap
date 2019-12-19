@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  *
- * @author tbn01914
+ * @author Isac Canedo
  */
 @Slf4j
 @RestController
